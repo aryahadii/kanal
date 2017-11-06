@@ -1,5 +1,5 @@
-hash: 09963e222e5f1dc2b15ef1a271efac5e48e24550c88a6b10969ce441ccd9c38c
-updated: 2017-11-06T19:16:48.283853+03:30
+hash: 606846345673e36124721bce0e03abccf09a39a91d65465947cb39247393b77d
+updated: 2017-11-06T19:25:53.483426+03:30
 imports:
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
@@ -14,10 +14,14 @@ imports:
   - json/parser
   - json/scanner
   - json/token
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/magiconair/properties
   version: 49d762b9817ba1c2e9d0c69183c2b4a8b8f1d934
 - name: github.com/mitchellh/mapstructure
   version: 06020f85339e21b2478f756a78e295255ffa4d6a
+- name: github.com/patrickmn/go-cache
+  version: a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0
 - name: github.com/pelletier/go-toml
   version: 4e9e0ee19b60b13eb79915933f44d8ed5f268bdd
 - name: github.com/sirupsen/logrus

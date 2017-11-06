@@ -1,4 +1,4 @@
-package kanal
+package main
 
 import (
 	"github.com/spf13/cobra"
@@ -16,5 +16,6 @@ func init() {
 }
 
 func start(cmd *cobra.Command, args []string) {
+	updater.InitializeUpdater()
 	updater.Update()
 }

@@ -1,6 +1,9 @@
-package kanal
+package main
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+	"gitlab.com/arha/kanal/configuration"
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "kanal <subcommand>",
@@ -9,5 +12,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	cobra.OnInitialize()
+	cobra.OnInitialize(func() {
+		configuration.LoadConfig()
+	})
 }

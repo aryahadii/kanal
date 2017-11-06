@@ -3,6 +3,7 @@ package updater
 import (
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/arha/kanal/configuration"
+	"gitlab.com/arha/kanal/handler"
 	botAPI "gopkg.in/telegram-bot-api.v4"
 )
 
@@ -11,7 +12,7 @@ var (
 	botToken string
 )
 
-func init() {
+func InitializeUpdater() {
 	botToken = configuration.KanalConfig.GetString("bot-token")
 
 	var err error
@@ -36,6 +37,10 @@ func Update() {
 	for update := range updates {
 		go func(update botAPI.Update) {
 			if update.Message != nil {
+				answers := handler.HandleMessage(update.Message)
+				for _, answer := range answers {
+					bot.Send(answer)
+				}
 			}
 		}(update)
 	}
