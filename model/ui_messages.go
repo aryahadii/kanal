@@ -7,4 +7,6 @@ const (
 	HelpCommandMessage       = "آن‌چه دل تنگت می‌خواد بنویس تا یک‌ضرب بره توی کانال!"
 	ErrorMessage             = "خطایی رخ داد. دوباره امتحان کن!"
 	ReturnedMessage          = "خب؟"
+
+	AdminKeyboardAccept = "ردیفه"
 )

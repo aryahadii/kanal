@@ -16,6 +16,13 @@ var (
 	userState = cache.New(30*time.Minute, 10*time.Minute)
 )
 
+func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
+	message := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
+	return []botAPI.Chattable{
+		message,
+	}
+}
+
 func HandleMessage(message *botAPI.Message) []botAPI.Chattable {
 	if answers, handled := handleCommand(message); handled {
 		return answers
@@ -93,9 +100,11 @@ func handleNewMessage(message *botAPI.Message) []botAPI.Chattable {
 		return answerMessages
 	}
 
-	// Post to Kanal
-	kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), message.Text)
-	answerMessages = append(answerMessages, kanalMessage)
+	// Post to Kanal Admins
+	kanalArchiveMessage := botAPI.NewForward(configuration.KanalConfig.GetInt64("kanal-archive-chatid"), message.Chat.ID, message.MessageID)
+	kanalMessage := botAPI.NewMessage(configuration.KanalConfig.GetInt64("kanal-admins-chatid"), message.Text)
+	kanalMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
+	answerMessages = append(answerMessages, kanalMessage, kanalArchiveMessage)
 
 	// Successful message
 	successfulSentMessage := botAPI.NewMessage(message.Chat.ID, model.NewMessageSentMessage)

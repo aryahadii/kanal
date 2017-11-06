@@ -21,3 +21,9 @@ func NewMessageCancelKeyboard() botAPI.ReplyKeyboardMarkup {
 	row := botAPI.NewKeyboardButtonRow(cancelKey)
 	return botAPI.NewReplyKeyboard(row)
 }
+
+func NewAdminInlineKeyboard(messageID string) botAPI.InlineKeyboardMarkup {
+	var row []botAPI.InlineKeyboardButton
+	row = append(row, botAPI.NewInlineKeyboardButtonData(model.AdminKeyboardAccept, messageID))
+	return botAPI.NewInlineKeyboardMarkup(row)
+}
