@@ -1,2 +1,4 @@
 debug: true
 bot-token: token
+kanal-username: kanal
+kanal-admins-username: kanal-admins
