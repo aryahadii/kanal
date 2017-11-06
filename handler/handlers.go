@@ -17,9 +17,12 @@ var (
 )
 
 func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
-	message := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
+	kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
+	editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, botAPI.NewInlineKeyboardMarkup())
+	editedMessage.ReplyMarkup = nil
 	return []botAPI.Chattable{
-		message,
+		kanalMessage,
+		editedMessage,
 	}
 }
 
