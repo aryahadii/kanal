@@ -19,7 +19,7 @@ func init() {
 	if err != nil {
 		log.WithError(err).Fatalln("can't initialize bot")
 	}
-	bot.Debug = configuration.KanalConfig.GetString("debug")
+	bot.Debug = configuration.KanalConfig.GetBool("debug")
 
 	log.Infof("authorized on account %s", bot.Self.UserName)
 }

@@ -15,7 +15,7 @@ help:
 	@echo "Please use \`make <ROOT>' where <ROOT> is one of"
 	@echo "  update-dependencies    to update glide.lock (refs to dependencies)"
 	@echo "  dependencies           to install the dependencies"
-	@echo "  kanal                  to build the binary"
+	@echo "  kanald                 to build the binary"
 	@echo "  clean                  to remove generated files"
 
 clean:
@@ -28,7 +28,7 @@ dependencies:
 	glide install
 
 kanald: *.go */*.go */*/*.go glide.lock
-	$(GO_VARS) $(GO) build -o="kanald" -ldflags="$(LD_FLAGS)" $(ROOT)/cmd/kanald
+	$(GO_VARS) $(GO) build -o="kanald" -ldflags="$(LD_FLAGS)" $(ROOT)/cmd/kanal
 
 docker: kanald Dockerfile
 	docker build -t $(DOCKER_IMAGE):$(VERSION) .
