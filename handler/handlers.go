@@ -41,14 +41,14 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 				MessageID: callbackQuery.Message.MessageID,
 				Reactions: make([][]string, 4),
 			}
-			db.MessagesCollection.Insert(messageData)
+			go db.MessagesCollection.Insert(messageData)
 		}
 
 		userID := strconv.Itoa(callbackQuery.From.ID)
 		removeUserReaction(userID, messageData.Reactions)
 		tappedEmojiIndex, _ := strconv.Atoi(splittedCallbackData[1])
 		messageData.Reactions[tappedEmojiIndex-1] = append(messageData.Reactions[tappedEmojiIndex-1], userID)
-		db.MessagesCollection.Update(bson.M{
+		go db.MessagesCollection.Update(bson.M{
 			"messageid": messageData.MessageID,
 		}, messageData)
 
