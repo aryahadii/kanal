@@ -2,9 +2,13 @@ package handler
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
+	"gopkg.in/mgo.v2/bson"
+
 	"gitlab.com/arha/kanal/configuration"
+	"gitlab.com/arha/kanal/db"
 	"gitlab.com/arha/kanal/ui/keyboard"
 
 	cache "github.com/patrickmn/go-cache"
@@ -17,13 +21,57 @@ var (
 )
 
 func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
-	kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
-	editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, botAPI.NewInlineKeyboardMarkup())
-	editedMessage.ReplyMarkup = nil
-	return []botAPI.Chattable{
-		kanalMessage,
-		editedMessage,
+	splittedCallbackData := strings.Split(callbackQuery.Data, model.CallbackSeparator)
+	if splittedCallbackData[0] == model.RadifeButton {
+		kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
+		kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard("", "", "")
+		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, botAPI.NewInlineKeyboardMarkup())
+		editedMessage.ReplyMarkup = nil
+		return []botAPI.Chattable{
+			kanalMessage,
+			editedMessage,
+		}
+	} else if splittedCallbackData[0] == model.EmojiButton {
+		var messageData model.Message
+		err := db.MessagesCollection.Find(bson.M{
+			"messageid": callbackQuery.Message.MessageID,
+		}).One(&messageData)
+		if err != nil {
+			messageData = model.Message{
+				MessageID: callbackQuery.Message.MessageID,
+			}
+			db.MessagesCollection.Insert(messageData)
+		}
+
+		userID := strconv.Itoa(callbackQuery.From.ID)
+		if !removeItemFromStringSlice(userID, &messageData.Type1Emoji) {
+			if !removeItemFromStringSlice(userID, &messageData.Type2Emoji) {
+				removeItemFromStringSlice(userID, &messageData.Type3Emoji)
+			}
+		}
+
+		if splittedCallbackData[1] == "1" {
+			messageData.Type1Emoji = append(messageData.Type1Emoji, userID)
+		} else if splittedCallbackData[1] == "2" {
+			messageData.Type2Emoji = append(messageData.Type2Emoji, userID)
+		} else if splittedCallbackData[1] == "3" {
+			messageData.Type3Emoji = append(messageData.Type3Emoji, userID)
+		}
+		db.MessagesCollection.Update(bson.M{
+			"messageid": messageData.MessageID,
+		}, messageData)
+
+		type1Count := strconv.Itoa(len(messageData.Type1Emoji))
+		type2Count := strconv.Itoa(len(messageData.Type2Emoji))
+		type3Count := strconv.Itoa(len(messageData.Type3Emoji))
+		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID,
+			keyboard.NewEmojiInlineKeyboard(type1Count, type2Count, type3Count))
+		return []botAPI.Chattable{
+			editedMessage,
+		}
 	}
+
+	return []botAPI.Chattable{}
 }
 
 func HandleMessage(message *botAPI.Message) []botAPI.Chattable {

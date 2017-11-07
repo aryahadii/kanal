@@ -1,0 +1,7 @@
+package model
+
+const (
+	CallbackSeparator = "~"
+	EmojiButton       = "emoji"
+	RadifeButton      = "radife"
+)
