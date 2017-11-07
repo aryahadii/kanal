@@ -2,6 +2,7 @@ package keyboard
 
 import (
 	"fmt"
+	"strconv"
 
 	"gitlab.com/arha/kanal/model"
 	botAPI "gopkg.in/telegram-bot-api.v4"
@@ -30,14 +31,16 @@ func NewAdminInlineKeyboard(messageID string) botAPI.InlineKeyboardMarkup {
 	return botAPI.NewInlineKeyboardMarkup(row)
 }
 
-func NewEmojiInlineKeyboard(type1, type2, type3 string) botAPI.InlineKeyboardMarkup {
-	var row []botAPI.InlineKeyboardButton
-	type1Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type1Emoji, type1),
+func NewEmojiInlineKeyboard(type1, type2, type3, type4 int) botAPI.InlineKeyboardMarkup {
+	var row1 []botAPI.InlineKeyboardButton
+	type1Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type1Emoji, strconv.Itoa(type1)),
 		fmt.Sprint(model.EmojiButton, model.CallbackSeparator, "1"))
-	type2Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type2Emoji, type2),
+	type2Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type2Emoji, strconv.Itoa(type2)),
 		fmt.Sprint(model.EmojiButton, model.CallbackSeparator, "2"))
-	type3Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type3Emoji, type3),
+	type3Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type3Emoji, strconv.Itoa(type3)),
 		fmt.Sprint(model.EmojiButton, model.CallbackSeparator, "3"))
-	row = append(row, type1Key, type2Key, type3Key)
-	return botAPI.NewInlineKeyboardMarkup(row)
+	type4Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type4Emoji, strconv.Itoa(type4)),
+		fmt.Sprint(model.EmojiButton, model.CallbackSeparator, "4"))
+	row1 = append(row1, type1Key, type2Key, type3Key, type4Key)
+	return botAPI.NewInlineKeyboardMarkup(row1)
 }

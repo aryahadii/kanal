@@ -1,6 +1,8 @@
 package updater
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/arha/kanal/configuration"
 	"gitlab.com/arha/kanal/handler"
@@ -35,6 +37,7 @@ func Update() {
 	}
 
 	for update := range updates {
+		startTime := time.Now()
 		go func(update botAPI.Update) {
 			var answers []botAPI.Chattable
 			if update.Message != nil {
@@ -45,6 +48,7 @@ func Update() {
 			for _, answer := range answers {
 				bot.Send(answer)
 			}
+			log.WithField("took", time.Since(startTime)).Infof("update processed")
 		}(update)
 	}
 }

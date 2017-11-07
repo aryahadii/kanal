@@ -10,7 +10,8 @@ const (
 
 	AdminKeyboardAccept = "ردیفه"
 
-	Type1Emoji = "😂 %s"
-	Type2Emoji = "😐 %s"
-	Type3Emoji = "😒 %s"
+	Type1Emoji = "👍 %s"
+	Type2Emoji = "😂 %s"
+	Type3Emoji = "😧 %s"
+	Type4Emoji = "😞 %s"
 )

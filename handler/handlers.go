@@ -24,7 +24,7 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 	splittedCallbackData := strings.Split(callbackQuery.Data, model.CallbackSeparator)
 	if splittedCallbackData[0] == model.RadifeButton {
 		kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
-		kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard("", "", "")
+		kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
 		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, botAPI.NewInlineKeyboardMarkup())
 		editedMessage.ReplyMarkup = nil
 		return []botAPI.Chattable{
@@ -39,33 +39,25 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 		if err != nil {
 			messageData = model.Message{
 				MessageID: callbackQuery.Message.MessageID,
+				Reactions: make([][]string, 4),
 			}
 			db.MessagesCollection.Insert(messageData)
 		}
 
 		userID := strconv.Itoa(callbackQuery.From.ID)
-		if !removeItemFromStringSlice(userID, &messageData.Type1Emoji) {
-			if !removeItemFromStringSlice(userID, &messageData.Type2Emoji) {
-				removeItemFromStringSlice(userID, &messageData.Type3Emoji)
-			}
-		}
-
-		if splittedCallbackData[1] == "1" {
-			messageData.Type1Emoji = append(messageData.Type1Emoji, userID)
-		} else if splittedCallbackData[1] == "2" {
-			messageData.Type2Emoji = append(messageData.Type2Emoji, userID)
-		} else if splittedCallbackData[1] == "3" {
-			messageData.Type3Emoji = append(messageData.Type3Emoji, userID)
-		}
+		removeUserReaction(userID, messageData.Reactions)
+		tappedEmojiIndex, _ := strconv.Atoi(splittedCallbackData[1])
+		messageData.Reactions[tappedEmojiIndex-1] = append(messageData.Reactions[tappedEmojiIndex-1], userID)
 		db.MessagesCollection.Update(bson.M{
 			"messageid": messageData.MessageID,
 		}, messageData)
 
-		type1Count := strconv.Itoa(len(messageData.Type1Emoji))
-		type2Count := strconv.Itoa(len(messageData.Type2Emoji))
-		type3Count := strconv.Itoa(len(messageData.Type3Emoji))
-		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID,
-			keyboard.NewEmojiInlineKeyboard(type1Count, type2Count, type3Count))
+		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID,
+			callbackQuery.Message.MessageID, keyboard.NewEmojiInlineKeyboard(
+				len(messageData.Reactions[0]),
+				len(messageData.Reactions[1]),
+				len(messageData.Reactions[2]),
+				len(messageData.Reactions[3])))
 		return []botAPI.Chattable{
 			editedMessage,
 		}
