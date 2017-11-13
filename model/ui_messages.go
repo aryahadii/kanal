@@ -9,6 +9,7 @@ const (
 	ReturnedMessage          = "خب؟"
 
 	AdminKeyboardAccept = "ردیفه"
+	AdminKeyboardReject = "نه حاجی"
 
 	Type1Emoji = "👍 %s"
 	Type2Emoji = "😂 %s"

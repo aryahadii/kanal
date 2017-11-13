@@ -4,4 +4,5 @@ const (
 	CallbackSeparator = "~"
 	EmojiButton       = "emoji"
 	RadifeButton      = "radife"
+	NaHajiButton      = "nahaji"
 )

@@ -31,6 +31,14 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 			kanalMessage,
 			editedMessage,
 		}
+	} else if splittedCallbackData[0] == model.NaHajiButton {
+		deleteMessageConfig := botAPI.DeleteMessageConfig{
+			ChatID:    callbackQuery.Message.Chat.ID,
+			MessageID: callbackQuery.Message.MessageID,
+		}
+		return []botAPI.Chattable{
+			deleteMessageConfig,
+		}
 	} else if splittedCallbackData[0] == model.EmojiButton {
 		var messageData model.Message
 		err := db.MessagesCollection.Find(bson.M{
