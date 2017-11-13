@@ -25,11 +25,13 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 	if splittedCallbackData[0] == model.RadifeButton {
 		kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
 		kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
-		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID, callbackQuery.Message.MessageID, botAPI.NewInlineKeyboardMarkup())
-		editedMessage.ReplyMarkup = nil
+		deleteMessageConfig := botAPI.DeleteMessageConfig{
+			ChatID:    callbackQuery.Message.Chat.ID,
+			MessageID: callbackQuery.Message.MessageID,
+		}
 		return []botAPI.Chattable{
 			kanalMessage,
-			editedMessage,
+			deleteMessageConfig,
 		}
 	} else if splittedCallbackData[0] == model.NaHajiButton {
 		deleteMessageConfig := botAPI.DeleteMessageConfig{
