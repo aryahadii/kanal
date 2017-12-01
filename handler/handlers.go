@@ -32,6 +32,7 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 					FileID:      photo.FileID,
 					UseExisting: true,
 				},
+				Caption: callbackQuery.Message.Caption,
 			}
 			photoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
 			responseChattables = append(responseChattables, photoMessage)
@@ -173,6 +174,7 @@ func handleNewMessage(message *botAPI.Message) []botAPI.Chattable {
 	if message.Photo != nil {
 		photo := (*message.Photo)[len(*message.Photo)-1]
 		kanalPhotoMessage := botAPI.NewPhotoShare(configuration.KanalConfig.GetInt64("kanal-admins-chatid"), photo.FileID)
+		kanalPhotoMessage.Caption = message.Caption
 		kanalPhotoMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
 		answerMessages = append(answerMessages, kanalPhotoMessage)
 	} else {
