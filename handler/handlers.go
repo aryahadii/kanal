@@ -23,16 +23,30 @@ var (
 func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 	splittedCallbackData := strings.Split(callbackQuery.Data, model.CallbackSeparator)
 	if splittedCallbackData[0] == model.RadifeButton {
-		kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
-		kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+		var responseChattables []botAPI.Chattable
+		if callbackQuery.Message.Photo != nil {
+			photo := (*callbackQuery.Message.Photo)[len(*callbackQuery.Message.Photo)-1]
+			photoMessage := botAPI.PhotoConfig{
+				BaseFile: botAPI.BaseFile{
+					BaseChat:    botAPI.BaseChat{ChannelUsername: configuration.KanalConfig.GetString("kanal-username")},
+					FileID:      photo.FileID,
+					UseExisting: true,
+				},
+			}
+			photoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			responseChattables = append(responseChattables, photoMessage)
+		} else {
+			kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
+			kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			responseChattables = append(responseChattables, kanalMessage)
+		}
 		deleteMessageConfig := botAPI.DeleteMessageConfig{
 			ChatID:    callbackQuery.Message.Chat.ID,
 			MessageID: callbackQuery.Message.MessageID,
 		}
-		return []botAPI.Chattable{
-			kanalMessage,
-			deleteMessageConfig,
-		}
+		responseChattables = append(responseChattables, deleteMessageConfig)
+
+		return responseChattables
 	} else if splittedCallbackData[0] == model.NaHajiButton {
 		deleteMessageConfig := botAPI.DeleteMessageConfig{
 			ChatID:    callbackQuery.Message.Chat.ID,
@@ -155,9 +169,17 @@ func handleNewMessage(message *botAPI.Message) []botAPI.Chattable {
 
 	// Post to Kanal Admins
 	kanalArchiveMessage := botAPI.NewForward(configuration.KanalConfig.GetInt64("kanal-archive-chatid"), message.Chat.ID, message.MessageID)
-	kanalMessage := botAPI.NewMessage(configuration.KanalConfig.GetInt64("kanal-admins-chatid"), message.Text)
-	kanalMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
-	answerMessages = append(answerMessages, kanalMessage, kanalArchiveMessage)
+	answerMessages = append(answerMessages, kanalArchiveMessage)
+	if message.Photo != nil {
+		photo := (*message.Photo)[len(*message.Photo)-1]
+		kanalPhotoMessage := botAPI.NewPhotoShare(configuration.KanalConfig.GetInt64("kanal-admins-chatid"), photo.FileID)
+		kanalPhotoMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
+		answerMessages = append(answerMessages, kanalPhotoMessage)
+	} else {
+		kanalMessage := botAPI.NewMessage(configuration.KanalConfig.GetInt64("kanal-admins-chatid"), message.Text)
+		kanalMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
+		answerMessages = append(answerMessages, kanalMessage)
+	}
 
 	// Successful message
 	successfulSentMessage := botAPI.NewMessage(message.Chat.ID, model.NewMessageSentMessage)
