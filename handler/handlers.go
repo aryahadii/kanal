@@ -24,7 +24,18 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 	splittedCallbackData := strings.Split(callbackQuery.Data, model.CallbackSeparator)
 	if splittedCallbackData[0] == model.RadifeButton {
 		var responseChattables []botAPI.Chattable
-		if callbackQuery.Message.Photo != nil {
+		if callbackQuery.Message.Document != nil {
+			gifMessage := botAPI.DocumentConfig{
+				BaseFile: botAPI.BaseFile{
+					BaseChat:    botAPI.BaseChat{ChannelUsername: configuration.KanalConfig.GetString("kanal-username")},
+					FileID:      callbackQuery.Message.Document.FileID,
+					UseExisting: true,
+				},
+			}
+			gifMessage.Caption = callbackQuery.Message.Caption
+			gifMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			responseChattables = append(responseChattables, gifMessage)
+		} else if callbackQuery.Message.Photo != nil {
 			photo := (*callbackQuery.Message.Photo)[len(*callbackQuery.Message.Photo)-1]
 			photoMessage := botAPI.PhotoConfig{
 				BaseFile: botAPI.BaseFile{
@@ -130,6 +141,7 @@ func handleCommand(message *botAPI.Message) ([]botAPI.Chattable, bool) {
 	} else if message.Text == model.NewMessageCommand {
 		state := &model.UserState{
 			CommandState: model.UserCommandStateNewMessage,
+			Payload:      map[string]interface{}{},
 		}
 		err := userState.Add(strconv.Itoa(message.From.ID), state, cache.DefaultExpiration)
 		if err != nil {
@@ -172,7 +184,8 @@ func handleNewMessage(message *botAPI.Message) []botAPI.Chattable {
 		answerMessages = append(answerMessages, errorMessage)
 		return answerMessages
 	}
-	if state.CommandState != model.UserCommandStateNewMessage {
+
+	if state.CommandState == model.UserCommandStateNothing {
 		errorMessage := botAPI.NewMessage(message.Chat.ID, model.ErrorMessage)
 		errorMessage.ReplyMarkup = keyboard.NewMainKeyboard()
 		answerMessages = append(answerMessages, errorMessage)
@@ -182,7 +195,22 @@ func handleNewMessage(message *botAPI.Message) []botAPI.Chattable {
 	// Post to Kanal Admins
 	kanalArchiveMessage := botAPI.NewForward(configuration.KanalConfig.GetInt64("kanal-archive-chatid"), message.Chat.ID, message.MessageID)
 	answerMessages = append(answerMessages, kanalArchiveMessage)
-	if message.Photo != nil {
+	if state.CommandState == model.UserCommandStateNewGIFCaption {
+		gifMessage := botAPI.NewDocumentShare(configuration.KanalConfig.GetInt64("kanal-admins-chatid"),
+			state.Payload["file-id"].(string))
+		gifMessage.Caption = message.Text
+		gifMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
+		answerMessages = append(answerMessages, gifMessage)
+	} else if message.Document != nil {
+		state.CommandState = model.UserCommandStateNewGIFCaption
+		state.Payload["file-id"] = message.Document.FileID
+		userState.Set(strconv.Itoa(message.From.ID), state, cache.DefaultExpiration)
+
+		captionInputMessage := botAPI.NewMessage(message.Chat.ID, model.NewGIFCommandMessage)
+		captionInputMessage.ReplyMarkup = keyboard.NewMessageCancelKeyboard()
+		answerMessages = append(answerMessages, captionInputMessage)
+		return answerMessages
+	} else if message.Photo != nil {
 		photo := (*message.Photo)[len(*message.Photo)-1]
 		kanalPhotoMessage := botAPI.NewPhotoShare(configuration.KanalConfig.GetInt64("kanal-admins-chatid"), photo.FileID)
 		kanalPhotoMessage.Caption = message.Caption
