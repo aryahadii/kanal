@@ -36,6 +36,17 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 			}
 			photoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
 			responseChattables = append(responseChattables, photoMessage)
+		} else if callbackQuery.Message.Video != nil {
+			videoMessage := botAPI.PhotoConfig{
+				BaseFile: botAPI.BaseFile{
+					BaseChat:    botAPI.BaseChat{ChannelUsername: configuration.KanalConfig.GetString("kanal-username")},
+					FileID:      callbackQuery.Message.Video.FileID,
+					UseExisting: true,
+				},
+				Caption: callbackQuery.Message.Caption,
+			}
+			videoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			responseChattables = append(responseChattables, videoMessage)
 		} else {
 			kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
 			kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
@@ -177,6 +188,11 @@ func handleNewMessage(message *botAPI.Message) []botAPI.Chattable {
 		kanalPhotoMessage.Caption = message.Caption
 		kanalPhotoMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
 		answerMessages = append(answerMessages, kanalPhotoMessage)
+	} else if message.Video != nil {
+		kanalVideoMessage := botAPI.NewVideoShare(configuration.KanalConfig.GetInt64("kanal-admins-chatid"), message.Video.FileID)
+		kanalVideoMessage.Caption = message.Caption
+		kanalVideoMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
+		answerMessages = append(answerMessages, kanalVideoMessage)
 	} else {
 		kanalMessage := botAPI.NewMessage(configuration.KanalConfig.GetInt64("kanal-admins-chatid"), message.Text)
 		kanalMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
