@@ -37,7 +37,7 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 			photoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
 			responseChattables = append(responseChattables, photoMessage)
 		} else if callbackQuery.Message.Video != nil {
-			videoMessage := botAPI.PhotoConfig{
+			videoMessage := botAPI.VideoConfig{
 				BaseFile: botAPI.BaseFile{
 					BaseChat:    botAPI.BaseChat{ChannelUsername: configuration.KanalConfig.GetString("kanal-username")},
 					FileID:      callbackQuery.Message.Video.FileID,
