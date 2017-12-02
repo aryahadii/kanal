@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"gopkg.in/mgo.v2/bson"
 
 	"gitlab.com/arha/kanal/configuration"
@@ -79,32 +81,49 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 			deleteMessageConfig,
 		}
 	} else if splittedCallbackData[0] == model.EmojiButton {
+		userID := strconv.Itoa(callbackQuery.From.ID)
+		tappedReactionIndex, _ := strconv.Atoi(splittedCallbackData[1])
+		tappedReaction := model.ConvertReactionIndexToReaction(tappedReactionIndex - 1)
+
+		logrus.Infof("database read for reaction")
 		var messageData model.Message
 		err := db.MessagesCollection.Find(bson.M{
 			"messageid": callbackQuery.Message.MessageID,
 		}).One(&messageData)
+		logrus.Infof("database read for reaction complete")
 		if err != nil {
 			messageData = model.Message{
-				MessageID: callbackQuery.Message.MessageID,
-				Reactions: make([][]string, 4),
+				MessageID:    callbackQuery.Message.MessageID,
+				ReactionsMap: make(map[string]model.Reaction),
 			}
+			messageData.ReactionsMap[userID] = tappedReaction
 			go db.MessagesCollection.Insert(messageData)
+		} else {
+			if messageData.ReactionsMap[userID] == tappedReaction {
+				delete(messageData.ReactionsMap, userID)
+			} else {
+				messageData.ReactionsMap[userID] = tappedReaction
+			}
+			go db.MessagesCollection.Update(bson.M{"_id": messageData.ID},
+				bson.M{"$set": bson.M{"reactionsmap": messageData.ReactionsMap}})
 		}
+		logrus.Infof("reactions updated/inserted")
 
-		userID := strconv.Itoa(callbackQuery.From.ID)
-		removeUserReaction(userID, messageData.Reactions)
-		tappedEmojiIndex, _ := strconv.Atoi(splittedCallbackData[1])
-		messageData.Reactions[tappedEmojiIndex-1] = append(messageData.Reactions[tappedEmojiIndex-1], userID)
-		go db.MessagesCollection.Update(bson.M{
-			"messageid": messageData.MessageID,
-		}, messageData)
+		// Counting
+		reactionsCount := map[model.Reaction]int{}
+		for _, value := range messageData.ReactionsMap {
+			if _, ok := reactionsCount[value]; !ok {
+				reactionsCount[value] = 0
+			}
+			reactionsCount[value]++
+		}
 
 		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID,
 			callbackQuery.Message.MessageID, keyboard.NewEmojiInlineKeyboard(
-				len(messageData.Reactions[0]),
-				len(messageData.Reactions[1]),
-				len(messageData.Reactions[2]),
-				len(messageData.Reactions[3])))
+				reactionsCount[model.ReactionLike],
+				reactionsCount[model.ReactionLol],
+				reactionsCount[model.ReactionWow],
+				reactionsCount[model.ReactionSad]))
 		return []botAPI.Chattable{
 			editedMessage,
 		}

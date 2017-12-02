@@ -37,14 +37,16 @@ func Update() {
 	}
 
 	for update := range updates {
-		startTime := time.Now()
+		log.Infof("new update arrived")
 		go func(update botAPI.Update) {
+			startTime := time.Now()
 			var answers []botAPI.Chattable
 			if update.Message != nil {
 				answers = handler.HandleMessage(update.Message)
 			} else {
 				answers = handler.HandleCallbacks(update.CallbackQuery)
 			}
+			log.Infof("responses are ready to send`")
 			for _, answer := range answers {
 				bot.Send(answer)
 			}
