@@ -49,6 +49,28 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 			}
 			photoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
 			responseChattables = append(responseChattables, photoMessage)
+		} else if callbackQuery.Message.Voice != nil {
+			voiceMessage := botAPI.VoiceConfig{
+				BaseFile: botAPI.BaseFile{
+					BaseChat:    botAPI.BaseChat{ChannelUsername: configuration.KanalConfig.GetString("kanal-username")},
+					FileID:      callbackQuery.Message.Voice.FileID,
+					UseExisting: true,
+				},
+				Caption: callbackQuery.Message.Caption,
+			}
+			voiceMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			responseChattables = append(responseChattables, voiceMessage)
+		} else if callbackQuery.Message.Audio != nil {
+			audioMessage := botAPI.AudioConfig{
+				BaseFile: botAPI.BaseFile{
+					BaseChat:    botAPI.BaseChat{ChannelUsername: configuration.KanalConfig.GetString("kanal-username")},
+					FileID:      callbackQuery.Message.Audio.FileID,
+					UseExisting: true,
+				},
+				Caption: callbackQuery.Message.Caption,
+			}
+			audioMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			responseChattables = append(responseChattables, audioMessage)
 		} else if callbackQuery.Message.Video != nil {
 			videoMessage := botAPI.VideoConfig{
 				BaseFile: botAPI.BaseFile{
@@ -220,6 +242,36 @@ func handleNewMessage(message *botAPI.Message) []botAPI.Chattable {
 		gifMessage.Caption = message.Text
 		gifMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
 		answerMessages = append(answerMessages, gifMessage)
+	} else if state.CommandState == model.UserCommandStateNewAudioCaption {
+		audioMessage := botAPI.NewAudioShare(configuration.KanalConfig.GetInt64("kanal-admins-chatid"),
+			state.Payload["file-id"].(string))
+		audioMessage.Caption = message.Text
+		audioMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
+		answerMessages = append(answerMessages, audioMessage)
+	} else if state.CommandState == model.UserCommandStateNewVoiceCaption {
+		voiceMessage := botAPI.NewVoiceShare(configuration.KanalConfig.GetInt64("kanal-admins-chatid"),
+			state.Payload["file-id"].(string))
+		voiceMessage.Caption = message.Text
+		voiceMessage.ReplyMarkup = keyboard.NewAdminInlineKeyboard(strconv.Itoa(message.MessageID))
+		answerMessages = append(answerMessages, voiceMessage)
+	} else if message.Voice != nil {
+		state.CommandState = model.UserCommandStateNewVoiceCaption
+		state.Payload["file-id"] = message.Voice.FileID
+		userState.Set(strconv.Itoa(message.From.ID), state, cache.DefaultExpiration)
+
+		captionInputMessage := botAPI.NewMessage(message.Chat.ID, model.NewVoiceCommandMessage)
+		captionInputMessage.ReplyMarkup = keyboard.NewMessageCancelKeyboard()
+		answerMessages = append(answerMessages, captionInputMessage)
+		return answerMessages
+	} else if message.Audio != nil {
+		state.CommandState = model.UserCommandStateNewAudioCaption
+		state.Payload["file-id"] = message.Audio.FileID
+		userState.Set(strconv.Itoa(message.From.ID), state, cache.DefaultExpiration)
+
+		captionInputMessage := botAPI.NewMessage(message.Chat.ID, model.NewAudioCommandMessage)
+		captionInputMessage.ReplyMarkup = keyboard.NewMessageCancelKeyboard()
+		answerMessages = append(answerMessages, captionInputMessage)
+		return answerMessages
 	} else if message.Document != nil {
 		state.CommandState = model.UserCommandStateNewGIFCaption
 		state.Payload["file-id"] = message.Document.FileID
