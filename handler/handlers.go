@@ -234,8 +234,10 @@ func handleNewMessage(message *botAPI.Message) []botAPI.Chattable {
 	}
 
 	// Post to Kanal Admins
-	kanalArchiveMessage := botAPI.NewForward(configuration.KanalConfig.GetInt64("kanal-archive-chatid"), message.Chat.ID, message.MessageID)
-	answerMessages = append(answerMessages, kanalArchiveMessage)
+	if configuration.KanalConfig.GetBool("debug") {
+		kanalArchiveMessage := botAPI.NewForward(configuration.KanalConfig.GetInt64("kanal-archive-chatid"), message.Chat.ID, message.MessageID)
+		answerMessages = append(answerMessages, kanalArchiveMessage)
+	}
 	if state.CommandState == model.UserCommandStateNewGIFCaption {
 		gifMessage := botAPI.NewDocumentShare(configuration.KanalConfig.GetInt64("kanal-admins-chatid"),
 			state.Payload["file-id"].(string))
