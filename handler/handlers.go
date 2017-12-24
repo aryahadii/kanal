@@ -26,6 +26,15 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 	splittedCallbackData := strings.Split(callbackQuery.Data, model.CallbackSeparator)
 	if splittedCallbackData[0] == model.RadifeButton {
 		var responseChattables []botAPI.Chattable
+
+		var text string
+		replyMessageID := -1
+		if callbackQuery.Message.Text != "" {
+			text, replyMessageID = findMessageIDInText(callbackQuery.Message.Text)
+		} else if callbackQuery.Message.Caption != "" {
+			text, replyMessageID = findMessageIDInText(callbackQuery.Message.Caption)
+		}
+
 		if callbackQuery.Message.Document != nil {
 			gifMessage := botAPI.DocumentConfig{
 				BaseFile: botAPI.BaseFile{
@@ -34,8 +43,11 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 					UseExisting: true,
 				},
 			}
-			gifMessage.Caption = callbackQuery.Message.Caption
+			gifMessage.Caption = text
 			gifMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			if replyMessageID > -1 {
+				gifMessage.ReplyToMessageID = replyMessageID
+			}
 			responseChattables = append(responseChattables, gifMessage)
 		} else if callbackQuery.Message.Photo != nil {
 			photo := (*callbackQuery.Message.Photo)[len(*callbackQuery.Message.Photo)-1]
@@ -45,9 +57,12 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 					FileID:      photo.FileID,
 					UseExisting: true,
 				},
-				Caption: callbackQuery.Message.Caption,
+				Caption: text,
 			}
 			photoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			if replyMessageID > -1 {
+				photoMessage.ReplyToMessageID = replyMessageID
+			}
 			responseChattables = append(responseChattables, photoMessage)
 		} else if callbackQuery.Message.Voice != nil {
 			voiceMessage := botAPI.VoiceConfig{
@@ -56,9 +71,12 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 					FileID:      callbackQuery.Message.Voice.FileID,
 					UseExisting: true,
 				},
-				Caption: callbackQuery.Message.Caption,
+				Caption: text,
 			}
 			voiceMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			if replyMessageID > -1 {
+				voiceMessage.ReplyToMessageID = replyMessageID
+			}
 			responseChattables = append(responseChattables, voiceMessage)
 		} else if callbackQuery.Message.Audio != nil {
 			audioMessage := botAPI.AudioConfig{
@@ -67,9 +85,12 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 					FileID:      callbackQuery.Message.Audio.FileID,
 					UseExisting: true,
 				},
-				Caption: callbackQuery.Message.Caption,
+				Caption: text,
 			}
 			audioMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			if replyMessageID > -1 {
+				audioMessage.ReplyToMessageID = replyMessageID
+			}
 			responseChattables = append(responseChattables, audioMessage)
 		} else if callbackQuery.Message.Video != nil {
 			videoMessage := botAPI.VideoConfig{
@@ -78,21 +99,27 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 					FileID:      callbackQuery.Message.Video.FileID,
 					UseExisting: true,
 				},
-				Caption: callbackQuery.Message.Caption,
+				Caption: text,
 			}
 			videoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			if replyMessageID > -1 {
+				videoMessage.ReplyToMessageID = replyMessageID
+			}
 			responseChattables = append(responseChattables, videoMessage)
 		} else {
-			kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), callbackQuery.Message.Text)
+			kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), text)
 			kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			if replyMessageID > -1 {
+				kanalMessage.ReplyToMessageID = replyMessageID
+			}
 			responseChattables = append(responseChattables, kanalMessage)
 		}
+
 		deleteMessageConfig := botAPI.DeleteMessageConfig{
 			ChatID:    callbackQuery.Message.Chat.ID,
 			MessageID: callbackQuery.Message.MessageID,
 		}
 		responseChattables = append(responseChattables, deleteMessageConfig)
-
 		return responseChattables
 	} else if splittedCallbackData[0] == model.NaHajiButton {
 		deleteMessageConfig := botAPI.DeleteMessageConfig{
