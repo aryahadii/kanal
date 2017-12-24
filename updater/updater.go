@@ -43,13 +43,18 @@ func Update() {
 			var answers []botAPI.Chattable
 			if update.Message != nil {
 				answers = handler.HandleMessage(update.Message)
-			} else {
+			} else if update.CallbackQuery != nil {
 				answers = handler.HandleCallbacks(update.CallbackQuery)
+			} else {
+				log.Errorf("Unknown message, %v", update)
+				return
 			}
+
 			log.Infof("responses are ready to send`")
 			for _, answer := range answers {
 				bot.Send(answer)
 			}
+
 			log.WithField("took", time.Since(startTime)).Infof("update processed")
 		}(update)
 	}
