@@ -5,4 +5,5 @@ const (
 	EmojiButton       = "emoji"
 	RadifeButton      = "radife"
 	NaHajiButton      = "nahaji"
+	NazarButton       = "nazar"
 )

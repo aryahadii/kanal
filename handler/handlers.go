@@ -24,7 +24,7 @@ var (
 
 func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 	splittedCallbackData := strings.Split(callbackQuery.Data, model.CallbackSeparator)
-	if splittedCallbackData[0] == model.RadifeButton {
+	if splittedCallbackData[0] == model.RadifeButton || splittedCallbackData[0] == model.NazarButton {
 		var responseChattables []botAPI.Chattable
 
 		var text string
@@ -33,6 +33,13 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 			text, replyMessageID = findMessageIDInText(callbackQuery.Message.Text)
 		} else if callbackQuery.Message.Caption != "" {
 			text, replyMessageID = findMessageIDInText(callbackQuery.Message.Caption)
+		}
+
+		var messageKeyboard botAPI.InlineKeyboardMarkup
+		if splittedCallbackData[0] == model.RadifeButton {
+			messageKeyboard = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+		} else {
+			messageKeyboard = keyboard.NewSurveyInlineKeyboard(0, 0)
 		}
 
 		if callbackQuery.Message.Document != nil {
@@ -44,7 +51,7 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 				},
 			}
 			gifMessage.Caption = text
-			gifMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			gifMessage.ReplyMarkup = messageKeyboard
 			if replyMessageID > -1 {
 				gifMessage.ReplyToMessageID = replyMessageID
 			}
@@ -59,7 +66,7 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 				},
 				Caption: text,
 			}
-			photoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			photoMessage.ReplyMarkup = messageKeyboard
 			if replyMessageID > -1 {
 				photoMessage.ReplyToMessageID = replyMessageID
 			}
@@ -73,7 +80,7 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 				},
 				Caption: text,
 			}
-			voiceMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			voiceMessage.ReplyMarkup = messageKeyboard
 			if replyMessageID > -1 {
 				voiceMessage.ReplyToMessageID = replyMessageID
 			}
@@ -87,7 +94,7 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 				},
 				Caption: text,
 			}
-			audioMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			audioMessage.ReplyMarkup = messageKeyboard
 			if replyMessageID > -1 {
 				audioMessage.ReplyToMessageID = replyMessageID
 			}
@@ -101,14 +108,14 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 				},
 				Caption: text,
 			}
-			videoMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			videoMessage.ReplyMarkup = messageKeyboard
 			if replyMessageID > -1 {
 				videoMessage.ReplyToMessageID = replyMessageID
 			}
 			responseChattables = append(responseChattables, videoMessage)
 		} else {
 			kanalMessage := botAPI.NewMessageToChannel(configuration.KanalConfig.GetString("kanal-username"), text)
-			kanalMessage.ReplyMarkup = keyboard.NewEmojiInlineKeyboard(0, 0, 0, 0)
+			kanalMessage.ReplyMarkup = messageKeyboard
 			if replyMessageID > -1 {
 				kanalMessage.ReplyToMessageID = replyMessageID
 			}
@@ -167,12 +174,21 @@ func HandleCallbacks(callbackQuery *botAPI.CallbackQuery) []botAPI.Chattable {
 			reactionsCount[value]++
 		}
 
-		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID,
-			callbackQuery.Message.MessageID, keyboard.NewEmojiInlineKeyboard(
+		var messageKeyboard botAPI.InlineKeyboardMarkup
+		if tappedReactionIndex < 5 {
+			messageKeyboard = keyboard.NewEmojiInlineKeyboard(
 				reactionsCount[model.ReactionLike],
 				reactionsCount[model.ReactionLol],
 				reactionsCount[model.ReactionWow],
-				reactionsCount[model.ReactionSad]))
+				reactionsCount[model.ReactionSad])
+		} else {
+			messageKeyboard = keyboard.NewSurveyInlineKeyboard(
+				reactionsCount[model.ReactionPositive],
+				reactionsCount[model.ReactionNegative])
+		}
+
+		editedMessage := botAPI.NewEditMessageReplyMarkup(callbackQuery.Message.Chat.ID,
+			callbackQuery.Message.MessageID, messageKeyboard)
 		return []botAPI.Chattable{
 			editedMessage,
 		}

@@ -12,10 +12,13 @@ const (
 	ReturnedMessage          = "خب؟"
 
 	AdminKeyboardAccept = "ردیفه"
+	AdminKeyboardSurvey = "نظرسنجی"
 	AdminKeyboardReject = "نه حاجی"
 
 	Type1Emoji = "👍 %s"
 	Type2Emoji = "😂 %s"
 	Type3Emoji = "😧 %s"
 	Type4Emoji = "😞 %s"
+	Type5Emoji = "👍 %s"
+	Type6Emoji = "👎 %s"
 )

@@ -3,11 +3,13 @@ package model
 type Reaction string
 
 const (
-	ReactionNothing Reaction = ""
-	ReactionLike    Reaction = "👍"
-	ReactionLol     Reaction = "😂"
-	ReactionWow     Reaction = "😧"
-	ReactionSad     Reaction = "😞"
+	ReactionNothing  Reaction = ""
+	ReactionLike     Reaction = "👍"
+	ReactionLol      Reaction = "😂"
+	ReactionWow      Reaction = "😧"
+	ReactionSad      Reaction = "😞"
+	ReactionPositive Reaction = "👍"
+	ReactionNegative Reaction = "👎"
 )
 
 func ConvertReactionIndexToReaction(index int) Reaction {
@@ -20,6 +22,10 @@ func ConvertReactionIndexToReaction(index int) Reaction {
 		return ReactionWow
 	case 3:
 		return ReactionSad
+	case 4:
+		return ReactionPositive
+	case 5:
+		return ReactionNegative
 	}
 	return ReactionNothing
 }

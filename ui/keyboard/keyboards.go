@@ -28,8 +28,9 @@ func NewMessageCancelKeyboard() botAPI.ReplyKeyboardMarkup {
 func NewAdminInlineKeyboard(messageID string) botAPI.InlineKeyboardMarkup {
 	var row []botAPI.InlineKeyboardButton
 	radifeButton := botAPI.NewInlineKeyboardButtonData(model.AdminKeyboardAccept, model.RadifeButton)
+	nazarButton := botAPI.NewInlineKeyboardButtonData(model.AdminKeyboardSurvey, model.NazarButton)
 	naHajiButton := botAPI.NewInlineKeyboardButtonData(model.AdminKeyboardReject, model.NaHajiButton)
-	row = append(row, radifeButton, naHajiButton)
+	row = append(row, radifeButton, nazarButton, naHajiButton)
 	return botAPI.NewInlineKeyboardMarkup(row)
 }
 
@@ -44,5 +45,15 @@ func NewEmojiInlineKeyboard(type1, type2, type3, type4 int) botAPI.InlineKeyboar
 	type4Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type4Emoji, strconv.Itoa(type4)),
 		fmt.Sprint(model.EmojiButton, model.CallbackSeparator, "4"))
 	row1 = append(row1, type1Key, type2Key, type3Key, type4Key)
+	return botAPI.NewInlineKeyboardMarkup(row1)
+}
+
+func NewSurveyInlineKeyboard(type1, type2 int) botAPI.InlineKeyboardMarkup {
+	var row1 []botAPI.InlineKeyboardButton
+	type1Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type5Emoji, strconv.Itoa(type1)),
+		fmt.Sprint(model.EmojiButton, model.CallbackSeparator, "5"))
+	type2Key := botAPI.NewInlineKeyboardButtonData(fmt.Sprintf(model.Type6Emoji, strconv.Itoa(type2)),
+		fmt.Sprint(model.EmojiButton, model.CallbackSeparator, "6"))
+	row1 = append(row1, type1Key, type2Key)
 	return botAPI.NewInlineKeyboardMarkup(row1)
 }
